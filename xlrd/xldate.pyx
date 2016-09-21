@@ -259,4 +259,4 @@ cpdef xldate_from_datetime_tuple(datetime_tuple, int datemode):
         xldate_from_time_tuple(datetime_tuple[3:])
         )
 
-##Soymanquisimo
+###soymanquisimo
