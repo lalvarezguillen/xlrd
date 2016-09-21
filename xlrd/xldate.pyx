@@ -56,7 +56,7 @@ class XLDateBadTuple(XLDateError):
     pass
 
 
-def xldate_as_tuple(xldate, datemode):
+cpdef xldate_as_tuple(float xldate, int datemode):
     """
     Convert an Excel number (presumed to represent a date, a datetime or a time) into
     a tuple suitable for feeding to datetime or mx.DateTime constructors.
@@ -88,6 +88,9 @@ def xldate_as_tuple(xldate, datemode):
         ``1904-01-01`` is not regarded as a valid date in the ``datemode==1``
         system; its "serial number" is zero.
     """
+    cdef int xldays, second, seconds, minute, minutes, hour, jdn
+    cdef float frac, yreg, mp, d
+    
     if datemode not in (0, 1):
         raise XLDateBadDatemode(datemode)
     if xldate == 0.00:
@@ -127,7 +130,7 @@ def xldate_as_tuple(xldate, datemode):
         return ((yreg // 1461) - 4716, mp + 3, d, hour, minute, second)
 
 
-def xldate_as_datetime(xldate, datemode):
+cpdef xldate_as_datetime(float xldate, int datemode):
     """
     Convert an Excel date/time number into a :class:`datetime.datetime` object.
 
@@ -136,6 +139,10 @@ def xldate_as_datetime(xldate, datemode):
 
     :returns: A :class:`datetime.datetime` object.
     """
+    cdef epoch
+    cdef int days, seconds, milliseconds
+    cdef float fraction
+    
 
     # Set the epoch based on the 1900/1904 datemode.
     if datemode:
@@ -161,7 +168,7 @@ def xldate_as_datetime(xldate, datemode):
 
 # === conversions from date/time to xl numbers
 
-def _leap(y):
+cpdef int _leap(y):
     if y % 4: return 0
     if y % 100: return 1
     if y % 400: return 0
@@ -170,7 +177,7 @@ def _leap(y):
 _days_in_month = (None, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
 
-def xldate_from_date_tuple(date_tuple, datemode):
+cpdef float xldate_from_date_tuple(date_tuple, int datemode):
     """
     Convert a date tuple (year, month, day) to an Excel date.
 
@@ -184,6 +191,8 @@ def xldate_from_date_tuple(date_tuple, datemode):
       ``(year, month, day)`` is too early/late or has invalid component(s)
     :raises xlrd.xldate.XLDateError:
     """
+    cdef int year, month, day, Yp, M, Mp, jdn, xldays
+    
     year, month, day = date_tuple
 
     if datemode not in (0, 1):
@@ -217,7 +226,7 @@ def xldate_from_date_tuple(date_tuple, datemode):
     return float(xldays)
 
 
-def xldate_from_time_tuple(time_tuple):
+cpdef xldate_from_time_tuple(time_tuple):
     """
     Convert a time tuple ``(hour, minute, second)`` to an Excel "date" value
     (fraction of a day).
@@ -227,13 +236,15 @@ def xldate_from_time_tuple(time_tuple):
     :param second: ``0 <= second < 60``
     :raises xlrd.xldate.XLDateBadTuple: Out-of-range hour, minute, or second
     """
+    cdef int hour, minute, second
+    
     hour, minute, second = time_tuple
     if 0 <= hour < 24 and 0 <= minute < 60 and 0 <= second < 60:
         return ((second / 60.0 + minute) / 60.0 + hour) / 24.0
     raise XLDateBadTuple("Invalid (hour, minute, second): %r" % ((hour, minute, second),))
 
 
-def xldate_from_datetime_tuple(datetime_tuple, datemode):
+cpdef xldate_from_datetime_tuple(datetime_tuple, int datemode):
     """
     Convert a datetime tuple ``(year, month, day, hour, minute, second)`` to an
     Excel date value.
@@ -247,3 +258,5 @@ def xldate_from_datetime_tuple(datetime_tuple, datemode):
         +
         xldate_from_time_tuple(datetime_tuple[3:])
         )
+
+##Soymanquisimo
