@@ -88,7 +88,7 @@ cpdef xldate_as_tuple(float xldate, int datemode):
         ``1904-01-01`` is not regarded as a valid date in the ``datemode==1``
         system; its "serial number" is zero.
     """
-    cdef int xldays, second, seconds, minute, minutes, hour, jdn, mpyreg
+    cdef int xldays, second, seconds, minute, minutes, hour, jdn, mp, yreg
     cdef float frac,d
     
     if datemode not in (0, 1):
