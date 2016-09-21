@@ -12,22 +12,23 @@ from an OLE2 Compound Document file.
 from __future__ import print_function
 import sys
 from struct import unpack
-from .timemachine import *
+#from .timemachine import *
+from timemachine import *
 import array
 
 #: Magic cookie that should appear in the first 8 bytes of the file.
 SIGNATURE = b"\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1"
 
-EOCSID = -2
-FREESID = -1
-SATSID = -3
-MSATSID = -4
-EVILSID = -5
+cdef public int EOCSID = -2
+cdef public int FREESID = -1
+cdef public int SATSID = -3
+cdef public int MSATSID = -4
+cdef public int EVILSID = -5
 
 class CompDocError(Exception):
     pass
 
-class DirNode(object):
+cdef class DirNode(object):
 
     def __init__(self, DID, dent, DEBUG=0, logfile=sys.stdout):
         # dent is the 128-byte directory entry
@@ -48,7 +49,7 @@ class DirNode(object):
         if DEBUG:
             self.dump(DEBUG)
 
-    def dump(self, DEBUG=1):
+    cpdef void dump(self, DEBUG=1):
         fprintf(
             self.logfile,
             "DID=%d name=%r etype=%d DIDs(left=%d right=%d root=%d parent=%d kids=%r) first_SID=%d tot_size=%d\n",
@@ -59,7 +60,7 @@ class DirNode(object):
             # cre_lo, cre_hi, mod_lo, mod_hi = tsinfo
             print("timestamp info", self.tsinfo, file=self.logfile)
 
-def _build_family_tree(dirlist, parent_DID, child_DID):
+cpdef void _build_family_tree(dict dirlist, parent_DID, child_DID):
     if child_DID < 0: return
     _build_family_tree(dirlist, parent_DID, dirlist[child_DID].left_DID)
     dirlist[parent_DID].children.append(child_DID)
@@ -69,7 +70,7 @@ def _build_family_tree(dirlist, parent_DID, child_DID):
         _build_family_tree(dirlist, child_DID, dirlist[child_DID].root_DID)
 
 
-class CompDoc(object):
+cdef class CompDoc(object):
     """
     Compound document handler.
 
@@ -80,6 +81,12 @@ class CompDoc(object):
 
 
     def __init__(self, mem, logfile=sys.stdout, DEBUG=0):
+        cdef int ssz, sssz, mem_data_len, mem_data_secs, left_over, sec_size, nent, expected_MSATX_sectors, actual_MSATX_sectors, MSATX_tot_secs
+        cdef int MSATX_first_sec_sid, sid, offset, dump_again, trunc_warned, did
+        cdef float fmt
+        cdef list MSAT, dirlist
+        cdef str msg, dbytes
+        
         self.logfile = logfile
         self.DEBUG = DEBUG
         if mem[0:8] != SIGNATURE:
@@ -222,6 +229,7 @@ class CompDoc(object):
         #
         # === build the directory ===
         #
+        
         dbytes = self._get_stream(
             self.mem, 512, self.SAT, self.sec_size, self.dir_first_sec_sid,
             name="directory", seen_id=3)
@@ -280,8 +288,10 @@ class CompDoc(object):
             print("seen", file=logfile)
             dump_list(seen, 20, logfile)
 
-    def _get_stream(self, mem, base, sat, sec_size, start_sid, size=None, name='', seen_id=None):
+    cpdef _get_stream(self, mem, base, sat, sec_size, start_sid, size=None, name='', seen_id=None):
         # print >> self.logfile, "_get_stream", base, sec_size, start_sid, size
+        cdef int s, start_pos, todo
+        cdef list sectors
         sectors = []
         s = start_sid
         if size is None:
@@ -329,8 +339,11 @@ class CompDoc(object):
 
         return b''.join(sectors)
 
-    def _dir_search(self, path, storage_DID=0):
+    cpdef _dir_search(self, path, storage_DID=0):
         # Return matching DirNode instance, or None
+
+        cdef list dl
+
         head = path[0]
         tail = path[1:]
         dl = self.dirlist
@@ -348,7 +361,7 @@ class CompDoc(object):
         return None
 
 
-    def get_named_stream(self, qname):
+    cpdef get_named_stream(self, qname):
         """
         Interrogate the compound document's directory; return the stream as a
         string if found, otherwise return ``None``.
@@ -369,7 +382,7 @@ class CompDoc(object):
                 self.SSCS, 0, self.SSAT, self.short_sec_size, d.first_SID,
                 d.tot_size, name=qname + " (from SSCS)", seen_id=None)
 
-    def locate_named_stream(self, qname):
+    cpdef locate_named_stream(self, qname):
         """
         Interrogate the compound document's directory.
 
@@ -409,7 +422,7 @@ class CompDoc(object):
                 d.tot_size
                 )
 
-    def _locate_stream(self, mem, base, sat, sec_size, start_sid, expected_stream_size, qname, seen_id):
+    cpdef _locate_stream(self, mem, base, sat, sec_size, start_sid, expected_stream_size, qname, seen_id):
         # print >> self.logfile, "_locate_stream", base, sec_size, start_sid, expected_stream_size
         s = start_sid
         if s < 0:
@@ -454,28 +467,30 @@ class CompDoc(object):
         return (b''.join([mem[start_pos:end_pos] for start_pos, end_pos in slices]), 0, expected_stream_size)
 
 # ==========================================================================================
-def x_dump_line(alist, stride, f, dpos, equal=0):
+cpdef x_dump_line(alist, stride, f, dpos, equal=0):
     print("%5d%s" % (dpos, " ="[equal]), end=' ', file=f)
     for value in alist[dpos:dpos + stride]:
         print(str(value), end=' ', file=f)
     print(file=f)
 
-def dump_list(alist, stride, f=sys.stdout):
-    def _dump_line(dpos, equal=0):
+
+cpdef _dump_line(dpos, stride, equal=0, f=sys.stdout):
         print("%5d%s" % (dpos, " ="[equal]), end=' ', file=f)
         for value in alist[dpos:dpos + stride]:
             print(str(value), end=' ', file=f)
         print(file=f)
+
+cpdef dump_list(alist, stride, f=sys.stdout):
     pos = None
     oldpos = None
     for pos in xrange(0, len(alist), stride):
         if oldpos is None:
-            _dump_line(pos)
+            _dump_line(pos, stride, f=f)
             oldpos = pos
         elif alist[pos:pos+stride] != alist[oldpos:oldpos+stride]:
             if pos - oldpos > stride:
-                _dump_line(pos - stride, equal=1)
-            _dump_line(pos)
+                _dump_line(pos - stride, stride,  equal=1, f=f)
+            _dump_line(pos, stride, f=f)
             oldpos = pos
     if oldpos is not None and pos is not None and pos != oldpos:
-        _dump_line(pos, equal=1)
+        _dump_line(pos, stride, equal=1, f=f)
