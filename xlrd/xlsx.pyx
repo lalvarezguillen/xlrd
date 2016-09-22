@@ -1,3 +1,4 @@
+# cython: profile=True
 ##
 # Portions copyright (c) 2008-2012 Stephen John Machin, Lingfo Pty Ltd
 # This module is part of the xlrd package, which is released under a BSD-style licence.
@@ -732,8 +733,8 @@ cpdef bad_child_tag(child_tag):
     raise Exception('cell type %s has unexpected child <%s> at rowx=%r colx=%r' % (cell_type, child_tag, rowx, colx))
 
 cpdef void _do_row(self, row_elem):
-    cdef int row_number, rowx, colx, charx, xf_index
-    cdef str letter_value, cell_name, cell_type, formula, child_tag
+    cdef int row_number, rowx, colx, charx, xf_index, lv
+    cdef str letter_value, cell_name, cell_type, formula, child_tag, c
     row_number = row_elem.get('r')
     if row_number is None: # Yes, it's optional.
         self.rowx += 1
