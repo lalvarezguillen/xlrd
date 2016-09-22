@@ -11,10 +11,15 @@ from os.path import normpath, join
 import sys
 import re
 from .timemachine import *
+#from timemachine import *
 from .book import Book, Name
+#from book import Book, Name
 from .biffh import error_text_from_code, XLRDError, XL_CELL_BLANK, XL_CELL_TEXT, XL_CELL_BOOLEAN, XL_CELL_ERROR
+#from biffh import error_text_from_code, XLRDError, XL_CELL_BLANK, XL_CELL_TEXT, XL_CELL_BOOLEAN, XL_CELL_ERROR
 from .formatting import is_date_format_string, Format, XF
+#from formatting import is_date_format_string, Format, XF
 from .sheet import Sheet
+#from sheet import Sheet
 
 DLF = sys.stdout # Default Log File
 
@@ -22,7 +27,9 @@ ET = None
 ET_has_iterparse = False
 Element_has_iter = False
 
-def ensure_elementtree_imported(verbosity, logfile):
+
+
+cpdef void ensure_elementtree_imported(verbosity, logfile):
     global ET, ET_has_iterparse, Element_has_iter
     if ET is not None:
         return
@@ -58,16 +65,19 @@ def ensure_elementtree_imported(verbosity, logfile):
             ])
         print(ET.__file__, ET.__name__, etree_version, ET_has_iterparse, file=logfile)
 
-def split_tag(tag):
+cpdef split_tag(tag):
+    cdef str pos
     pos = tag.rfind('}') + 1
     if pos >= 2:
         return tag[:pos], tag[pos:]
     return '', tag
 
-def augment_keys(adict, uri):
+cpdef augment_keys(dict adict, uri):
     # uri must already be enclosed in {}
     for x in list(adict.keys()):
         adict[uri + x] = adict[x]
+
+cdef dict _UPPERCASE_1_REL_INDEX, error_code_from_text
 
 _UPPERCASE_1_REL_INDEX = {} # Used in fast conversion of column names (e.g. "XFD") to indices (16383)
 for _x in xrange(26):
@@ -76,10 +86,11 @@ for _x in "123456789":
     _UPPERCASE_1_REL_INDEX[_x] = 0
 del _x
 
-def cell_name_to_rowx_colx(cell_name, letter_value=_UPPERCASE_1_REL_INDEX,
-        allow_no_col=False):
+cpdef cell_name_to_rowx_colx(cell_name, letter_value=_UPPERCASE_1_REL_INDEX,
+        bint allow_no_col=False):
     # Extract column index from cell name
     # A<row number> => 0, Z =>25, AA => 26, XFD => 16383
+    cdef int colx, charx, rowx
     colx = 0
     charx = -1
     try:
@@ -134,7 +145,8 @@ def unescape(s,
         return subber(repl, s)
     return s
 
-def cooked_text(self, elem):
+cpdef cooked_text(self, elem):
+    cdef str t
     t = elem.text
     if t is None:
         return ''
@@ -142,8 +154,11 @@ def cooked_text(self, elem):
         t = t.strip(XML_WHITESPACE)
     return ensure_unicode(unescape(t))
 
-def get_text_from_si_or_is(self, elem, r_tag=U_SSML12+'r', t_tag=U_SSML12 +'t'):
+
+cpdef get_text_from_si_or_is(self, elem, r_tag=U_SSML12+'r', t_tag=U_SSML12 +'t'):
     "Returns unescaped unicode"
+    cdef list accum
+    cdef str tag, t
     accum = []
     for child in elem:
         # self.dump_elem(child)
@@ -160,7 +175,7 @@ def get_text_from_si_or_is(self, elem, r_tag=U_SSML12+'r', t_tag=U_SSML12 +'t'):
                         accum.append(t)
     return ''.join(accum)
 
-def map_attributes(amap, elem, obj):
+cpdef map_attributes(amap, elem, obj):
     for xml_attr, obj_attr, cnv_func_or_const in amap:
         if not xml_attr:
             setattr(obj, obj_attr, cnv_func_or_const)
@@ -170,18 +185,18 @@ def map_attributes(amap, elem, obj):
         cooked_value = cnv_func_or_const(raw_value)
         setattr(obj, obj_attr, cooked_value)
 
-def cnv_ST_Xstring(s):
+cpdef cnv_ST_Xstring(str s):
     if s is None: return ""
     return ensure_unicode(s)
 
-def cnv_xsd_unsignedInt(s):
+cpdef int cnv_xsd_unsignedInt(str s):
     if not s:
         return None
     value = int(s)
     assert value >= 0
     return value
 
-def cnv_xsd_boolean(s):
+cpdef int cnv_xsd_boolean(str s):
     if not s:
         return 0
     if s in ("1", "true", "on"):
@@ -222,7 +237,12 @@ _defined_name_attribute_map = (
     ("",                    "stack",        None,            ),
     )
 
-def make_name_access_maps(bk):
+cpdef void make_name_access_maps(bk):
+    cdef dict name_and_scope_map, name_map
+    cdef int num_names
+    cdef str name_lcase
+    cdef list alist
+    
     name_and_scope_map = {} # (name.lower(), scope): Name_object
     name_map = {}           # name.lower() : list of Name_objects (sorted in scope order)
     num_names = len(bk.name_obj_list)
@@ -251,7 +271,9 @@ def make_name_access_maps(bk):
     bk.name_map = name_map
 
 class X12General(object):
-
+    def __init__(self):
+        pass
+        
     def process_stream(self, stream, heading=None):
         if self.verbosity >= 2 and heading is not None:
             fprintf(self.logfile, "\n=== %s ===\n", heading)
@@ -277,7 +299,7 @@ class X12General(object):
         text = (12 * ' ' + fmt + '\n') % vargs
         self.logfile.write(text)
 
-class X12Book(X12General):
+class X12Book(X12General):##por aqui
 
     def __init__(self, bk, logfile=DLF, verbosity=False):
         self.bk = bk
@@ -618,156 +640,8 @@ class X12Sheet(X12General):
                                       first_colx, last_colx + 1))
 
     def do_row(self, row_elem):
-
-        def bad_child_tag(child_tag):
-             raise Exception('cell type %s has unexpected child <%s> at rowx=%r colx=%r' % (cell_type, child_tag, rowx, colx))
-
-        row_number = row_elem.get('r')
-        if row_number is None: # Yes, it's optional.
-            self.rowx += 1
-            explicit_row_number = 0
-            if self.verbosity and not self.warned_no_row_num:
-                self.dumpout("no row number; assuming rowx=%d", self.rowx)
-                self.warned_no_row_num = 1
-        else:
-            self.rowx = int(row_number) - 1
-            explicit_row_number = 1
-        assert 0 <= self.rowx < X12_MAX_ROWS
-        rowx = self.rowx
-        colx = -1
-        if self.verbosity >= 3:
-            self.dumpout("<row> row_number=%r rowx=%d explicit=%d",
-                row_number, self.rowx, explicit_row_number)
-        letter_value = _UPPERCASE_1_REL_INDEX
-        for cell_elem in row_elem:
-            cell_name = cell_elem.get('r')
-            if cell_name is None: # Yes, it's optional.
-                colx += 1
-                if self.verbosity and not self.warned_no_cell_name:
-                    self.dumpout("no cellname; assuming rowx=%d colx=%d", rowx, colx)
-                    self.warned_no_cell_name = 1
-            else:
-                # Extract column index from cell name
-                # A<row number> => 0, Z =>25, AA => 26, XFD => 16383
-                colx = 0
-                charx = -1
-                try:
-                    for c in cell_name:
-                        charx += 1
-                        if c == '$':
-                            continue
-                        lv = letter_value[c]
-                        if lv:
-                            colx = colx * 26 + lv
-                        else: # start of row number; can't be '0'
-                            colx = colx - 1
-                            assert 0 <= colx < X12_MAX_COLS
-                            break
-                except KeyError:
-                    raise Exception('Unexpected character %r in cell name %r' % (c, cell_name))
-                if explicit_row_number and cell_name[charx:] != row_number:
-                    raise Exception('cell name %r but row number is %r' % (cell_name, row_number))
-            xf_index = int(cell_elem.get('s', '0'))
-            cell_type = cell_elem.get('t', 'n')
-            tvalue = None
-            formula = None
-            if cell_type == 'n':
-                # n = number. Most frequent type.
-                # <v> child contains plain text which can go straight into float()
-                # OR there's no text in which case it's a BLANK cell
-                for child in cell_elem:
-                    child_tag = child.tag
-                    if child_tag == V_TAG:
-                        tvalue = child.text
-                    elif child_tag == F_TAG:
-                        formula = cooked_text(self, child)
-                    else:
-                        raise Exception('unexpected tag %r' % child_tag)
-                if not tvalue:
-                    if self.bk.formatting_info:
-                        self.sheet.put_cell(rowx, colx, XL_CELL_BLANK, '', xf_index)
-                else:
-                    self.sheet.put_cell(rowx, colx, None, float(tvalue), xf_index)
-            elif cell_type == "s":
-                # s = index into shared string table. 2nd most frequent type
-                # <v> child contains plain text which can go straight into int()
-                for child in cell_elem:
-                    child_tag = child.tag
-                    if child_tag == V_TAG:
-                        tvalue = child.text
-                    elif child_tag == F_TAG:
-                        # formula not expected here, but gnumeric does it.
-                        formula = child.text
-                    else:
-                        bad_child_tag(child_tag)
-                if not tvalue:
-                    # <c r="A1" t="s"/>
-                    if self.bk.formatting_info:
-                        self.sheet.put_cell(rowx, colx, XL_CELL_BLANK, '', xf_index)
-                else:
-                    value = self.sst[int(tvalue)]
-                    self.sheet.put_cell(rowx, colx, XL_CELL_TEXT, value, xf_index)
-            elif cell_type == "str":
-                # str = string result from formula.
-                # Should have <f> (formula) child; however in one file, all text cells are str with no formula.
-                # <v> child can contain escapes
-                for child in cell_elem:
-                    child_tag = child.tag
-                    if child_tag == V_TAG:
-                        tvalue = cooked_text(self, child)
-                    elif child_tag == F_TAG:
-                        formula = cooked_text(self, child)
-                    else:
-                        bad_child_tag(child_tag)
-                # assert tvalue is not None and formula is not None
-                # Yuk. Fails with file created by gnumeric -- no tvalue!
-                self.sheet.put_cell(rowx, colx, XL_CELL_TEXT, tvalue, xf_index)
-            elif cell_type == "b":
-                # b = boolean
-                # <v> child contains "0" or "1"
-                for child in cell_elem:
-                    child_tag = child.tag
-                    if child_tag == V_TAG:
-                        tvalue = child.text
-                    elif child_tag == F_TAG:
-                        formula = cooked_text(self, child)
-                    else:
-                        bad_child_tag(child_tag)
-                self.sheet.put_cell(rowx, colx, XL_CELL_BOOLEAN, cnv_xsd_boolean(tvalue), xf_index)
-            elif cell_type == "e":
-                # e = error
-                # <v> child contains e.g. "#REF!"
-                for child in cell_elem:
-                    child_tag = child.tag
-                    if child_tag == V_TAG:
-                        tvalue = child.text
-                    elif child_tag == F_TAG:
-                        formula = cooked_text(self, child)
-                    else:
-                        bad_child_tag(child_tag)
-                value = error_code_from_text[tvalue]
-                self.sheet.put_cell(rowx, colx, XL_CELL_ERROR, value, xf_index)
-            elif cell_type == "inlineStr":
-                # Not expected in files produced by Excel.
-                # It's a way of allowing 3rd party s/w to write text (including rich text) cells
-                # without having to build a shared string table
-                for child in cell_elem:
-                    child_tag = child.tag
-                    if child_tag == IS_TAG:
-                        tvalue = get_text_from_si_or_is(self, child)
-                    elif child_tag == V_TAG:
-                        tvalue = child.text
-                    elif child_tag == F_TAG:
-                        formula = child.text
-                    else:
-                        bad_child_tag(child_tag)
-                if not tvalue:
-                    if self.bk.formatting_info:
-                        self.sheet.put_cell(rowx, colx, XL_CELL_BLANK, '', xf_index)
-                else:
-                    self.sheet.put_cell(rowx, colx, XL_CELL_TEXT, tvalue, xf_index)
-            else:
-                raise Exception("Unknown cell type %r in rowx=%d colx=%d" % (cell_type, rowx, colx))
+        _do_row(self, row_elem)
+        
 
     tag2meth = {
         'row':          do_row,
@@ -853,3 +727,158 @@ def open_workbook_2007_xml(
         sheet.tidy_dimensions()
 
     return bk
+
+cpdef bad_child_tag(child_tag):
+    raise Exception('cell type %s has unexpected child <%s> at rowx=%r colx=%r' % (cell_type, child_tag, rowx, colx))
+
+cpdef void _do_row(self, row_elem):
+    cdef int row_number, rowx, colx, charx, xf_index
+    cdef str letter_value, cell_name, cell_type, formula, child_tag
+    row_number = row_elem.get('r')
+    if row_number is None: # Yes, it's optional.
+        self.rowx += 1
+        explicit_row_number = 0
+        if self.verbosity and not self.warned_no_row_num:
+            self.dumpout("no row number; assuming rowx=%d", self.rowx)
+            self.warned_no_row_num = 1
+    else:
+        self.rowx = int(row_number) - 1
+        explicit_row_number = 1
+    assert 0 <= self.rowx < X12_MAX_ROWS
+    rowx = self.rowx
+    colx = -1
+    if self.verbosity >= 3:
+        self.dumpout("<row> row_number=%r rowx=%d explicit=%d",
+            row_number, self.rowx, explicit_row_number)
+    letter_value = _UPPERCASE_1_REL_INDEX
+    for cell_elem in row_elem:
+        cell_name = cell_elem.get('r')
+        if cell_name is None: # Yes, it's optional.
+            colx += 1
+            if self.verbosity and not self.warned_no_cell_name:
+                self.dumpout("no cellname; assuming rowx=%d colx=%d", rowx, colx)
+                self.warned_no_cell_name = 1
+        else:
+            # Extract column index from cell name
+            # A<row number> => 0, Z =>25, AA => 26, XFD => 16383
+            colx = 0
+            charx = -1
+            try:
+                for c in cell_name:
+                    charx += 1
+                    if c == '$':
+                        continue
+                    lv = letter_value[c]
+                    if lv:
+                        colx = colx * 26 + lv
+                    else: # start of row number; can't be '0'
+                        colx = colx - 1
+                        assert 0 <= colx < X12_MAX_COLS
+                        break
+            except KeyError:
+                raise Exception('Unexpected character %r in cell name %r' % (c, cell_name))
+            if explicit_row_number and cell_name[charx:] != row_number:
+                raise Exception('cell name %r but row number is %r' % (cell_name, row_number))
+        xf_index = int(cell_elem.get('s', '0'))
+        cell_type = cell_elem.get('t', 'n')
+        tvalue = None
+        formula = None
+        if cell_type == 'n':
+            # n = number. Most frequent type.
+            # <v> child contains plain text which can go straight into float()
+            # OR there's no text in which case it's a BLANK cell
+            for child in cell_elem:
+                child_tag = child.tag
+                if child_tag == V_TAG:
+                    tvalue = child.text
+                elif child_tag == F_TAG:
+                    formula = cooked_text(self, child)
+                else:
+                    raise Exception('unexpected tag %r' % child_tag)
+            if not tvalue:
+                if self.bk.formatting_info:
+                    self.sheet.put_cell(rowx, colx, XL_CELL_BLANK, '', xf_index)
+            else:
+                self.sheet.put_cell(rowx, colx, None, float(tvalue), xf_index)
+        elif cell_type == "s":
+            # s = index into shared string table. 2nd most frequent type
+            # <v> child contains plain text which can go straight into int()
+            for child in cell_elem:
+                child_tag = child.tag
+                if child_tag == V_TAG:
+                    tvalue = child.text
+                elif child_tag == F_TAG:
+                    # formula not expected here, but gnumeric does it.
+                    formula = child.text
+                else:
+                    bad_child_tag(child_tag)
+            if not tvalue:
+                # <c r="A1" t="s"/>
+                if self.bk.formatting_info:
+                    self.sheet.put_cell(rowx, colx, XL_CELL_BLANK, '', xf_index)
+            else:
+                value = self.sst[int(tvalue)]
+                self.sheet.put_cell(rowx, colx, XL_CELL_TEXT, value, xf_index)
+        elif cell_type == "str":
+            # str = string result from formula.
+            # Should have <f> (formula) child; however in one file, all text cells are str with no formula.
+            # <v> child can contain escapes
+            for child in cell_elem:
+                child_tag = child.tag
+                if child_tag == V_TAG:
+                    tvalue = cooked_text(self, child)
+                elif child_tag == F_TAG:
+                    formula = cooked_text(self, child)
+                else:
+                    bad_child_tag(child_tag)
+            # assert tvalue is not None and formula is not None
+            # Yuk. Fails with file created by gnumeric -- no tvalue!
+            self.sheet.put_cell(rowx, colx, XL_CELL_TEXT, tvalue, xf_index)
+        elif cell_type == "b":
+            # b = boolean
+            # <v> child contains "0" or "1"
+            for child in cell_elem:
+                child_tag = child.tag
+                if child_tag == V_TAG:
+                    tvalue = child.text
+                elif child_tag == F_TAG:
+                    formula = cooked_text(self, child)
+                else:
+                    bad_child_tag(child_tag)
+            self.sheet.put_cell(rowx, colx, XL_CELL_BOOLEAN, cnv_xsd_boolean(tvalue), xf_index)
+        elif cell_type == "e":
+            # e = error
+            # <v> child contains e.g. "#REF!"
+            for child in cell_elem:
+                child_tag = child.tag
+                if child_tag == V_TAG:
+                    tvalue = child.text
+                elif child_tag == F_TAG:
+                    formula = cooked_text(self, child)
+                else:
+                    bad_child_tag(child_tag)
+            value = error_code_from_text[tvalue]
+            self.sheet.put_cell(rowx, colx, XL_CELL_ERROR, value, xf_index)
+        elif cell_type == "inlineStr":
+            # Not expected in files produced by Excel.
+            # It's a way of allowing 3rd party s/w to write text (including rich text) cells
+            # without having to build a shared string table
+            for child in cell_elem:
+                child_tag = child.tag
+                if child_tag == IS_TAG:
+                    tvalue = get_text_from_si_or_is(self, child)
+                elif child_tag == V_TAG:
+                    tvalue = child.text
+                elif child_tag == F_TAG:
+                    formula = child.text
+                else:
+                    bad_child_tag(child_tag)
+            if not tvalue:
+                if self.bk.formatting_info:
+                    self.sheet.put_cell(rowx, colx, XL_CELL_BLANK, '', xf_index)
+            else:
+                self.sheet.put_cell(rowx, colx, XL_CELL_TEXT, tvalue, xf_index)
+        else:
+            raise Exception("Unknown cell type %r in rowx=%d colx=%d" % (cell_type, rowx, colx))
+
+    

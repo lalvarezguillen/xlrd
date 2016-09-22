@@ -5,14 +5,21 @@
 from __future__ import print_function
 
 from .timemachine import *
+#from timemachine import *
 from .biffh import *
+#from biffh import *
 import struct; unpack = struct.unpack
 import sys
 import time
 from . import sheet
+#import sheet
 from . import compdoc
+#import compdoc
 from .formula import *
+#from formula import *
 from . import formatting
+#import formatting
+
 if sys.version.startswith("IronPython"):
     # print >> sys.stderr, "...importing encodings"
     import encodings

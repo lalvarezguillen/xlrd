@@ -9,17 +9,22 @@ Module for formatting information.
 """
 
 from __future__ import print_function
+import pyximport; pyximport.install()
 
 DEBUG = 0
 import re
 from struct import unpack
 from .timemachine import *
+#from timemachine import *
 from .biffh import BaseObject, unpack_unicode, unpack_string, \
     upkbits, upkbitsL, fprintf, \
     FUN, FDT, FNU, FGE, FTX, XL_CELL_NUMBER, XL_CELL_DATE, XL_CELL_TEXT, \
     XL_FORMAT, XL_FORMAT2, \
     XLRDError
-
+#from biffh import BaseObject, unpack_unicode, unpack_string, \
+#    upkbits, upkbitsL, fprintf, \
+#    FUN, FDT, FNU, FGE, FTX, XL_CELL_NUMBER, XL_CELL_DATE, XL_CELL_TEXT, XL_FORMAT, XL_FORMAT2, XLRDError
+    
 _cellty_from_fmtty = {
     FNU: XL_CELL_NUMBER,
     FUN: XL_CELL_NUMBER,

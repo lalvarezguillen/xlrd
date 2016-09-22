@@ -7,8 +7,8 @@ from __future__ import print_function
 DEBUG = 0
 
 from struct import unpack
-#from .timemachine import *
-from timemachine import *
+from .timemachine import *
+#from timemachine import *
 import sys
 
 
@@ -16,7 +16,6 @@ class XLRDError(Exception):
     """
     An exception indicating problems reading data from an Excel file.
     """
-
 
 cdef class BaseObject(object):
     """
@@ -29,7 +28,7 @@ cdef class BaseObject(object):
         self._repr_these = []
     
 
-    cpdef dump(self, f=None, header=None, footer=None, indent=0):
+    cpdef dump(self, f=None, header=None, footer=None, int indent=0):
         """
         :param f: open file object, to which the dump is written
         :param header: text to write before the dump
@@ -118,107 +117,107 @@ cdef int XL_BOUNDSHEET_CHART     = 0x02
 cdef int XL_BOUNDSHEET_VB_MODULE = 0x06
 
 # XL_RK2 = 0x7e
-cdef int XL_ARRAY  = 0x0221
-cdef int XL_ARRAY2 = 0x0021
-cdef int XL_BLANK = 0x0201
-cdef int XL_BLANK_B2 = 0x01
-cdef int XL_BOF = 0x809
-cdef int XL_BOOLERR = 0x205
-cdef int XL_BOOLERR_B2 = 0x5
-cdef int XL_BOUNDSHEET = 0x85
-cdef int XL_BUILTINFMTCOUNT = 0x56
-cdef int XL_CF = 0x01B1
-cdef int XL_CODEPAGE = 0x42
-cdef int XL_COLINFO = 0x7D
-cdef int XL_COLUMNDEFAULT = 0x20 # BIFF2 only
-cdef int XL_COLWIDTH = 0x24 # BIFF2 only
-cdef int XL_CONDFMT = 0x01B0
-cdef int XL_CONTINUE = 0x3c
-cdef int XL_COUNTRY = 0x8C
-cdef int XL_DATEMODE = 0x22
-cdef int XL_DEFAULTROWHEIGHT = 0x0225
-cdef int XL_DEFCOLWIDTH = 0x55
-cdef int XL_DIMENSION = 0x200
-cdef int XL_DIMENSION2 = 0x0
-cdef int XL_EFONT = 0x45
-cdef int XL_EOF = 0x0a
-cdef int XL_EXTERNNAME = 0x23
-cdef int XL_EXTERNSHEET = 0x17
-cdef int XL_EXTSST = 0xff
-cdef int XL_FEAT11 = 0x872
-cdef int XL_FILEPASS = 0x2f
-cdef int XL_FONT = 0x31
-cdef int XL_FONT_B3B4 = 0x231
-cdef int XL_FORMAT = 0x41e
-cdef int XL_FORMAT2 = 0x1E # BIFF2, BIFF3
-cdef int XL_FORMULA = 0x6
-cdef int XL_FORMULA3 = 0x206
-cdef int XL_FORMULA4 = 0x406
-cdef int XL_GCW = 0xab
-cdef int XL_HLINK = 0x01B8
-cdef int XL_QUICKTIP = 0x0800
-cdef int XL_HORIZONTALPAGEBREAKS = 0x1b
-cdef int XL_INDEX = 0x20b
-cdef int XL_INTEGER = 0x2 # BIFF2 only
-cdef int XL_IXFE = 0x44 # BIFF2 only
-cdef int XL_LABEL = 0x204
-cdef int XL_LABEL_B2 = 0x04
-cdef int XL_LABELRANGES = 0x15f
-cdef int XL_LABELSST = 0xfd
-cdef int XL_LEFTMARGIN = 0x26
-cdef int XL_TOPMARGIN = 0x28
-cdef int XL_RIGHTMARGIN = 0x27
-cdef int XL_BOTTOMMARGIN = 0x29
-cdef int XL_HEADER = 0x14
-cdef int XL_FOOTER = 0x15 
-cdef int XL_HCENTER = 0x83
-cdef int XL_VCENTER = 0x84
-cdef int XL_MERGEDCELLS = 0xE5
-cdef int XL_MSO_DRAWING = 0x00EC
-cdef int XL_MSO_DRAWING_GROUP = 0x00EB
-cdef int XL_MSO_DRAWING_SELECTION = 0x00ED
-cdef int XL_MULRK = 0xbd
-cdef int XL_MULBLANK = 0xbe
-cdef int XL_NAME = 0x18
-cdef int XL_NOTE = 0x1c
-cdef int XL_NUMBER = 0x203
-cdef int XL_NUMBER_B2 = 0x3
-cdef int XL_OBJ = 0x5D
-cdef int XL_PAGESETUP = 0xA1
-cdef int XL_PALETTE = 0x92
-cdef int XL_PANE = 0x41
-cdef int XL_PRINTGRIDLINES = 0x2B
-cdef int XL_PRINTHEADERS = 0x2A
-cdef int XL_RK = 0x27e
-cdef int XL_ROW = 0x208
-cdef int XL_ROW_B2 = 0x08
-cdef int XL_RSTRING = 0xd6
-cdef int XL_SCL = 0x00A0
-cdef int XL_SHEETHDR = 0x8F # BIFF4W only
-cdef int XL_SHEETPR = 0x81
-cdef int XL_SHEETSOFFSET = 0x8E # BIFF4W only
-cdef int XL_SHRFMLA = 0x04bc
-cdef int XL_SST = 0xfc
-cdef int XL_STANDARDWIDTH = 0x99
-cdef int XL_STRING = 0x207
-cdef int XL_STRING_B2 = 0x7
-cdef int XL_STYLE = 0x293
-cdef int XL_SUPBOOK = 0x1AE # aka EXTERNALBOOK in OOo docs
-cdef int XL_TABLEOP = 0x236
-cdef int XL_TABLEOP2 = 0x37
-cdef int XL_TABLEOP_B2 = 0x36
-cdef int XL_TXO = 0x1b6
-cdef int XL_UNCALCED = 0x5e
-cdef int XL_UNKNOWN = 0xffff
-cdef int XL_VERTICALPAGEBREAKS = 0x1a
-cdef int XL_WINDOW2    = 0x023E
-cdef int XL_WINDOW2_B2 = 0x003E
-cdef int XL_WRITEACCESS = 0x5C
-cdef int XL_WSBOOL = XL_SHEETPR
-cdef int XL_XF = 0xe0
-cdef int XL_XF2 = 0x0043 # BIFF2 version of XF record
-cdef int XL_XF3 = 0x0243 # BIFF3 version of XF record
-cdef int XL_XF4 = 0x0443 # BIFF4 version of XF record
+XL_ARRAY  = 0x0221
+XL_ARRAY2 = 0x0021
+XL_BLANK = 0x0201
+XL_BLANK_B2 = 0x01
+XL_BOF = 0x809
+XL_BOOLERR = 0x205
+XL_BOOLERR_B2 = 0x5
+XL_BOUNDSHEET = 0x85
+XL_BUILTINFMTCOUNT = 0x56
+XL_CF = 0x01B1
+XL_CODEPAGE = 0x42
+XL_COLINFO = 0x7D
+XL_COLUMNDEFAULT = 0x20 # BIFF2 only
+XL_COLWIDTH = 0x24 # BIFF2 only
+XL_CONDFMT = 0x01B0
+XL_CONTINUE = 0x3c
+XL_COUNTRY = 0x8C
+XL_DATEMODE = 0x22
+XL_DEFAULTROWHEIGHT = 0x0225
+XL_DEFCOLWIDTH = 0x55
+XL_DIMENSION = 0x200
+XL_DIMENSION2 = 0x0
+XL_EFONT = 0x45
+XL_EOF = 0x0a
+XL_EXTERNNAME = 0x23
+XL_EXTERNSHEET = 0x17
+XL_EXTSST = 0xff
+XL_FEAT11 = 0x872
+XL_FILEPASS = 0x2f
+XL_FONT = 0x31
+XL_FONT_B3B4 = 0x231
+XL_FORMAT = 0x41e
+XL_FORMAT2 = 0x1E # BIFF2, BIFF3
+XL_FORMULA = 0x6
+XL_FORMULA3 = 0x206
+XL_FORMULA4 = 0x406
+XL_GCW = 0xab
+XL_HLINK = 0x01B8
+XL_QUICKTIP = 0x0800
+XL_HORIZONTALPAGEBREAKS = 0x1b
+XL_INDEX = 0x20b
+XL_INTEGER = 0x2 # BIFF2 only
+XL_IXFE = 0x44 # BIFF2 only
+XL_LABEL = 0x204
+XL_LABEL_B2 = 0x04
+XL_LABELRANGES = 0x15f
+XL_LABELSST = 0xfd
+XL_LEFTMARGIN = 0x26
+XL_TOPMARGIN = 0x28
+XL_RIGHTMARGIN = 0x27
+XL_BOTTOMMARGIN = 0x29
+XL_HEADER = 0x14
+XL_FOOTER = 0x15 
+XL_HCENTER = 0x83
+XL_VCENTER = 0x84
+XL_MERGEDCELLS = 0xE5
+XL_MSO_DRAWING = 0x00EC
+XL_MSO_DRAWING_GROUP = 0x00EB
+XL_MSO_DRAWING_SELECTION = 0x00ED
+XL_MULRK = 0xbd
+XL_MULBLANK = 0xbe
+XL_NAME = 0x18
+XL_NOTE = 0x1c
+XL_NUMBER = 0x203
+XL_NUMBER_B2 = 0x3
+XL_OBJ = 0x5D
+XL_PAGESETUP = 0xA1
+XL_PALETTE = 0x92
+XL_PANE = 0x41
+XL_PRINTGRIDLINES = 0x2B
+XL_PRINTHEADERS = 0x2A
+XL_RK = 0x27e
+XL_ROW = 0x208
+XL_ROW_B2 = 0x08
+XL_RSTRING = 0xd6
+XL_SCL = 0x00A0
+XL_SHEETHDR = 0x8F # BIFF4W only
+XL_SHEETPR = 0x81
+XL_SHEETSOFFSET = 0x8E # BIFF4W only
+XL_SHRFMLA = 0x04bc
+XL_SST = 0xfc
+XL_STANDARDWIDTH = 0x99
+XL_STRING = 0x207
+XL_STRING_B2 = 0x7
+XL_STYLE = 0x293
+XL_SUPBOOK = 0x1AE # aka EXTERNALBOOK in OOo docs
+XL_TABLEOP = 0x236
+XL_TABLEOP2 = 0x37
+XL_TABLEOP_B2 = 0x36
+XL_TXO = 0x1b6
+XL_UNCALCED = 0x5e
+XL_UNKNOWN = 0xffff
+XL_VERTICALPAGEBREAKS = 0x1a
+XL_WINDOW2    = 0x023E
+XL_WINDOW2_B2 = 0x003E
+XL_WRITEACCESS = 0x5C
+XL_WSBOOL = XL_SHEETPR
+XL_XF = 0xe0
+XL_XF2 = 0x0043 # BIFF2 version of XF record
+XL_XF3 = 0x0243 # BIFF3 version of XF record
+XL_XF4 = 0x0443 # BIFF4 version of XF record
 
 cdef dict boflen, _cell_opcode_dict
 cdef list _cell_opcode_list
@@ -259,7 +258,7 @@ cpdef unpack_string(data, pos, encoding, lenlen=1):
     pos += lenlen
     return unicode(data[pos:pos+nchars], encoding)
 
-cpdef unpack_string_update_pos(data, int pos, encoding, int lenlen=1, int known_len=None):
+cpdef unpack_string_update_pos(data, int pos, encoding, int lenlen=1, known_len=None):
     cdef int nchars, newpos
     if known_len is not None:
         # On a NAME record, the length byte is detached from the front of the string.
@@ -313,7 +312,7 @@ cpdef unpack_unicode(data, int pos, int lenlen=2):
     # return (strg, pos)
     return strg
 
-cpdef unpack_unicode_update_pos(data, int pos, int lenlen=2, int known_len=None): ##Bandera
+cpdef unpack_unicode_update_pos(data, int pos, int lenlen=2, known_len=None):
     "Return (unicode_strg, updated value of pos)"
     if known_len is not None:
         # On a NAME record, the length byte is detached from the front of the string.
@@ -348,8 +347,8 @@ cpdef unpack_unicode_update_pos(data, int pos, int lenlen=2, int known_len=None)
         pos += sz
     return (strg, pos)
 
-def unpack_cell_range_address_list_update_pos(
-    output_list, data, pos, biff_version, addr_size=6):
+cpdef int unpack_cell_range_address_list_update_pos(
+    output_list, data, int pos, biff_version, int addr_size=6):
     # output_list is updated in situ
     assert addr_size in (6, 8)
     # Used to assert size == 6 if not BIFF8, but pyWLWriter writes
@@ -366,6 +365,7 @@ def unpack_cell_range_address_list_update_pos(
             output_list.append((ra, rb+1, ca, cb+1))
             pos += addr_size
     return pos
+
 
 _brecstrg = """\
 0000 DIMENSIONS_B2
@@ -527,6 +527,7 @@ _brecstrg = """\
 0867 SHEETPROTECTION
 0868 RANGEPROTECTION
 """
+cdef dict _rec_name_dict
 
 biff_rec_name_dict = {}
 for _buff in _brecstrg.splitlines():
@@ -534,7 +535,10 @@ for _buff in _brecstrg.splitlines():
     biff_rec_name_dict[int(_numh, 16)] = _name
 del _buff, _name, _brecstrg
 
-def hex_char_dump(strg, ofs, dlen, base=0, fout=sys.stdout, unnumbered=False):
+cpdef void hex_char_dump(strg, ofs, dlen, base=0, fout=sys.stdout, bint unnumbered=False):
+    cdef int endpos, pos, endsub, lensub
+    cdef str num_prefix, substrg, chard
+    cdef bint numbered
     endpos = min(ofs + dlen, len(strg))
     pos = ofs
     numbered = not unnumbered
@@ -565,7 +569,11 @@ def hex_char_dump(strg, ofs, dlen, base=0, fout=sys.stdout, unnumbered=False):
         fprintf(fout, "%s     %-48s %s\n", num_prefix, hexd, chard)
         pos = endsub
 
-def biff_dump(mem, stream_offset, stream_len, base=0, fout=sys.stdout, unnumbered=False):
+cpdef void biff_dump(int mem, int stream_offset, int stream_len, int base=0, fout=sys.stdout, bint unnumbered=False):
+    cdef int pos, stream_end, adj, dummies, rc, length, savpos
+    cdef bint numbered
+    cdef str num_prefix
+    
     pos = stream_offset
     stream_end = stream_offset + stream_len
     adj = base - stream_offset
@@ -611,7 +619,11 @@ def biff_dump(mem, stream_offset, stream_len, base=0, fout=sys.stdout, unnumbere
     elif pos > stream_end:
         fprintf(fout, "Last dumped record has length (%d) that is too large\n", length)
 
-def biff_count_records(mem, stream_offset, stream_len, fout=sys.stdout):
+cpdef void biff_count_records(int mem, int stream_offset, int stream_len, fout=sys.stdout):
+    cdef int pos, stream_end, rc, length
+    cdef list slist
+    cdef dict tally
+    cdef str recname
     pos = stream_offset
     stream_end = stream_offset + stream_len
     tally = {}

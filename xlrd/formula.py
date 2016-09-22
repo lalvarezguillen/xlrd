@@ -12,9 +12,12 @@ from __future__ import print_function
 import copy
 from struct import unpack
 from .timemachine import *
+#from timemachine import *
 from .biffh import unpack_unicode_update_pos, unpack_string_update_pos, \
     XLRDError, hex_char_dump, error_text_from_code, BaseObject
 
+#from biffh import unpack_unicode_update_pos, unpack_string_update_pos, \
+#    XLRDError, hex_char_dump, error_text_from_code, BaseObject
 __all__ = [
     'oBOOL', 'oERR', 'oNUM', 'oREF', 'oREL', 'oSTRG', 'oUNK',
     'decompile_formula',

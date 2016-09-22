@@ -8,10 +8,13 @@ from __future__ import print_function
 from array import array
 from struct import unpack, calcsize
 from .biffh import *
+#from biffh import *
 from .timemachine import *
+#from timemachine import *
 from .formula import dump_formula, decompile_formula, rangename2d, FMLA_TYPE_CELL, FMLA_TYPE_SHARED
+#from formula import dump_formula, decompile_formula, rangename2d, FMLA_TYPE_CELL, FMLA_TYPE_SHARED
 from .formatting import nearest_colour_index, Format
-
+#from formatting import nearest_colour_index, Format
 DEBUG = 0
 OBJ_MSO_DEBUG = 0
 

@@ -12,8 +12,8 @@ from an OLE2 Compound Document file.
 from __future__ import print_function
 import sys
 from struct import unpack
-#from .timemachine import *
-from timemachine import *
+from .timemachine import *
+#from timemachine import *
 import array
 
 #: Magic cookie that should appear in the first 8 bytes of the file.
@@ -80,7 +80,7 @@ cdef class CompDoc(object):
     """
 
 
-    def __init__(self, mem, logfile=sys.stdout, DEBUG=0):
+    def __init__(self, int mem, logfile=sys.stdout, DEBUG=0):
         cdef int ssz, sssz, mem_data_len, mem_data_secs, left_over, sec_size, nent, expected_MSATX_sectors, actual_MSATX_sectors, MSATX_tot_secs
         cdef int MSATX_first_sec_sid, sid, offset, dump_again, trunc_warned, did
         cdef float fmt
