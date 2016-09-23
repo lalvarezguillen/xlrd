@@ -701,7 +701,7 @@ cpdef bad_child_tag(child_tag):
     raise Exception('cell type %s has unexpected child <%s> at rowx=%r colx=%r' % (cell_type, child_tag, rowx, colx))
 
 cpdef void _do_row(self, row_elem):
-    cdef int row_number, rowx, colx, charx, xf_index, lv
+    cdef int row_number, rowx, colx, charx, xf_index, lv, explicit_row_number
     cdef str letter_value, cell_name, cell_type, formula, child_tag, c
     row_number = row_elem.get('r')
     if row_number is None: # Yes, it's optional.
@@ -879,7 +879,8 @@ cpdef void _do_merge_cell(self, elem):
                                   first_colx, last_colx + 1))
 
 cpdef void _own_process_stream(self, stream, heading=None):
-    cdef str row_tag    
+    cdef str row_tag
+    cdef elem, event
     if self.verbosity >= 2 and heading is not None:
         fprintf(self.logfile, "\n=== %s ===\n", heading)
     getmethod = self.tag2meth.get
@@ -887,10 +888,13 @@ cpdef void _own_process_stream(self, stream, heading=None):
     self_do_row = self.do_row
     for event, elem in ET.iterparse(stream):
         if elem.tag == row_tag:
+            #_do_row(elem)
             self_do_row(elem)
             elem.clear() # destroy all child elements (cells)
         elif elem.tag == U_SSML12 + "dimension":
+            #_do_dimension(elem)
             self.do_dimension(elem)
         elif elem.tag == U_SSML12 + "mergeCell":
+            #_do_merge_cell(elem)
             self.do_merge_cell(elem)
     self.finish_off()
