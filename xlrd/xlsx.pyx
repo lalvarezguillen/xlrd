@@ -79,19 +79,20 @@ cpdef augment_keys(dict adict, uri):
         adict[uri + x] = adict[x]
 
 cdef dict _UPPERCASE_1_REL_INDEX, error_code_from_text
-
+cdef int _x, _y
 _UPPERCASE_1_REL_INDEX = {} # Used in fast conversion of column names (e.g. "XFD") to indices (16383)
 for _x in xrange(26):
     _UPPERCASE_1_REL_INDEX["ABCDEFGHIJKLMNOPQRSTUVWXYZ"[_x]] = _x + 1
-for _x in "123456789":
-    _UPPERCASE_1_REL_INDEX[_x] = 0
-del _x
-
-cpdef cell_name_to_rowx_colx(cell_name, letter_value=_UPPERCASE_1_REL_INDEX,
+for _y in "123456789":
+    _UPPERCASE_1_REL_INDEX[_y] = 0
+#del _x
+#del _y
+cpdef cell_name_to_rowx_colx(str cell_name, letter_value=_UPPERCASE_1_REL_INDEX,
         bint allow_no_col=False):
     # Extract column index from cell name
     # A<row number> => 0, Z =>25, AA => 26, XFD => 16383
-    cdef int colx, charx, rowx
+    cdef int colx, charx, rowx, lv
+    cdef str c
     colx = 0
     charx = -1
     try:
@@ -560,21 +561,8 @@ class X12Sheet(X12General):
         if ET_has_iterparse:
             self.process_stream = self.own_process_stream
 
-    def own_process_stream(self, stream, heading=None):
-        if self.verbosity >= 2 and heading is not None:
-            fprintf(self.logfile, "\n=== %s ===\n", heading)
-        getmethod = self.tag2meth.get
-        row_tag = U_SSML12 + "row"
-        self_do_row = self.do_row
-        for event, elem in ET.iterparse(stream):
-            if elem.tag == row_tag:
-                self_do_row(elem)
-                elem.clear() # destroy all child elements (cells)
-            elif elem.tag == U_SSML12 + "dimension":
-                self.do_dimension(elem)
-            elif elem.tag == U_SSML12 + "mergeCell":
-                self.do_merge_cell(elem)
-        self.finish_off()
+    def own_process_stream(self, stream, heading=None):##own_process_stream
+        _own_process_stream(self, stream, heading = None)
 
     def process_rels(self, stream):
         if self.verbosity >= 2:
@@ -615,30 +603,10 @@ class X12Sheet(X12General):
             cell_note_map[coords] = note
 
     def do_dimension(self, elem):
-        ref = elem.get('ref') # example: "A1:Z99" or just "A1"
-        if ref:
-            # print >> self.logfile, "dimension: ref=%r" % ref
-            last_cell_ref = ref.split(':')[-1] # example: "Z99"
-            rowx, colx = cell_name_to_rowx_colx(
-                    last_cell_ref, allow_no_col=True)
-            self.sheet._dimnrows = rowx + 1
-            if colx is not None:
-                self.sheet._dimncols = colx + 1
+        _do_dimension(self, elem)
 
     def do_merge_cell(self, elem):
-        # The ref attribute should be a cell range like "B1:D5".
-        ref = elem.get('ref')
-        if ref:
-            try:
-                first_cell_ref, last_cell_ref = ref.split(':')
-            except ValueError:
-                # encountered a single cell merge, e.g. "B3"
-                first_cell_ref = ref
-                last_cell_ref = ref
-            first_rowx, first_colx = cell_name_to_rowx_colx(first_cell_ref)
-            last_rowx, last_colx = cell_name_to_rowx_colx(last_cell_ref)
-            self.merged_cells.append((first_rowx, last_rowx + 1,
-                                      first_colx, last_colx + 1))
+        _do_merge_cell(self, elem)
 
     def do_row(self, row_elem):
         _do_row(self, row_elem)
@@ -882,4 +850,47 @@ cpdef void _do_row(self, row_elem):
         else:
             raise Exception("Unknown cell type %r in rowx=%d colx=%d" % (cell_type, rowx, colx))
 
-    
+cpdef void _do_dimension(self, elem):
+        ref = elem.get('ref') # example: "A1:Z99" or just "A1"
+        if ref:
+            # print >> self.logfile, "dimension: ref=%r" % ref
+            last_cell_ref = ref.split(':')[-1] # example: "Z99"
+            rowx, colx = cell_name_to_rowx_colx(
+                    last_cell_ref, allow_no_col=True)
+            self.sheet._dimnrows = rowx + 1
+            if colx is not None:
+                self.sheet._dimncols = colx + 1
+
+cpdef void _do_merge_cell(self, elem):
+    # The ref attribute should be a cell range like "B1:D5".
+    cdef int first_rowx, first_colx, last_rowx, last_colx
+    cdef str ref, first_cell_ref, last_cell_ref
+    ref = elem.get('ref')
+    if ref:
+        try:
+            first_cell_ref, last_cell_ref = ref.split(':')
+        except ValueError:
+            # encountered a single cell merge, e.g. "B3"
+            first_cell_ref = ref
+            last_cell_ref = ref
+        first_rowx, first_colx = cell_name_to_rowx_colx(first_cell_ref)
+        last_rowx, last_colx = cell_name_to_rowx_colx(last_cell_ref)
+        self.merged_cells.append((first_rowx, last_rowx + 1,
+                                  first_colx, last_colx + 1))
+
+cpdef void _own_process_stream(self, stream, heading=None):
+    cdef str row_tag    
+    if self.verbosity >= 2 and heading is not None:
+        fprintf(self.logfile, "\n=== %s ===\n", heading)
+    getmethod = self.tag2meth.get
+    row_tag = U_SSML12 + "row"
+    self_do_row = self.do_row
+    for event, elem in ET.iterparse(stream):
+        if elem.tag == row_tag:
+            self_do_row(elem)
+            elem.clear() # destroy all child elements (cells)
+        elif elem.tag == U_SSML12 + "dimension":
+            self.do_dimension(elem)
+        elif elem.tag == U_SSML12 + "mergeCell":
+            self.do_merge_cell(elem)
+    self.finish_off()
