@@ -18,6 +18,7 @@ setup(
                 # 'doc/*.txt',
                 'examples/*.*',
                 ],
+            '': ["*.pyx"]
 
             },
     description = (
