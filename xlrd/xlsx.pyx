@@ -135,9 +135,9 @@ XML_SPACE_ATTR = "{http://www.w3.org/XML/1998/namespace}space"
 XML_WHITESPACE = "\t\n \r"
 X12_MAX_ROWS = 2 ** 20
 X12_MAX_COLS = 2 ** 14
-V_TAG = U_SSML12 + 'v' # cell child: value
-F_TAG = U_SSML12 + 'f' # cell child: formula
-IS_TAG = U_SSML12 + 'is' # cell child: inline string
+cdef public str V_TAG = U_SSML12 + 'v' # cell child: value
+cdef public str F_TAG = U_SSML12 + 'f' # cell child: formula
+cdef public str IS_TAG = U_SSML12 + 'is' # cell child: inline string
 
 def unescape(s,
     subber=re.compile(r'_x[0-9A-Fa-f]{4,4}_', re.UNICODE).sub,
@@ -703,6 +703,7 @@ cpdef bad_child_tag(child_tag):
 cpdef void _do_row(self, row_elem):
     cdef int row_number, rowx, colx, charx, xf_index, lv, explicit_row_number
     cdef str letter_value, cell_name, cell_type, formula, child_tag, c
+    cdef child
     row_number = row_elem.get('r')
     if row_number is None: # Yes, it's optional.
         self.rowx += 1
