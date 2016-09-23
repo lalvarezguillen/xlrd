@@ -702,8 +702,9 @@ cpdef bad_child_tag(child_tag):
 
 cpdef void _do_row(self, row_elem):
     cdef int row_number, rowx, colx, charx, xf_index, lv, explicit_row_number
-    cdef str letter_value, cell_name, cell_type, formula, child_tag, c
+    cdef str cell_name, cell_type, formula, child_tag, c
     cdef child
+    cdef dict letter_value
     row_number = row_elem.get('r')
     if row_number is None: # Yes, it's optional.
         self.rowx += 1
