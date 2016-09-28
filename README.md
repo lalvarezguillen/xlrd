@@ -1,3 +1,4 @@
+Cythonized some bottlenecks. 50% speed increase so far.
 
 ### xlrd cythonize
 
