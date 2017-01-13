@@ -70,7 +70,7 @@ cpdef void _build_family_tree(dict dirlist, parent_DID, child_DID):
         _build_family_tree(dirlist, child_DID, dirlist[child_DID].root_DID)
 
 
-cdef class CompDoc(object):
+class CompDoc(object):
     """
     Compound document handler.
 
